@@ -60,6 +60,7 @@ npm start
 
 ## 4- To run the mobile app
 
-You can use the first link in the terminal after ruuning the front, then choose *Tunnel* and scan the QR code in the link
+- Be sure to have *expoGo* application on your phone
+- You can use the first link in the terminal after ruuning the front, then choose *Tunnel* and scan the QR code in the link
 
 
