@@ -15,8 +15,8 @@
 //const int pingPin = 6; // Trigger Pin of Ultrasonic Sensor
 //const int echoPin = 5; // Echo Pin of Ultrasonic Sensor
 
-const int pingPin = A1; // Trigger Pin of Ultrasonic Sensor
-const int echoPin = A0; // Echo Pin of Ultrasonic Sensor
+//const int pingPin = A1; // Trigger Pin of Ultrasonic Sensor
+//const int echoPin = A0; // Echo Pin of Ultrasonic Sensor
 
 //------- RFID----------
 //RFID
@@ -39,7 +39,7 @@ int led_green = A3;    // access granted
 int led_blue = A4; // indicating 3 RFID granted access
 
 //------- motors ----------
-char dir;
+char dir = 0;
 int ENA = 6; // MCU PWM Pin 10 to ENA on L298n Board
 int IN1 = 2;
 int IN2 = 3;
@@ -54,7 +54,7 @@ int second = 8;
 int first_in = 0;
 int second_in = 0;
 int mod = 19; //A5  // to check mode whether automatic or manual
-int state = 0;  // if 0 automatic, if 1 manual
+int state = 1;  // if 0 automatic, if 1 manual
 
 void setup() {
   // Open serial communications and wait for port to open:
@@ -177,15 +177,21 @@ void setup() {
 
 void loop() // run over and over
 {
+  delay(1000);
   first_in = digitalRead(first);
   second_in = digitalRead(second);
+  //  Serial.print("first_in ");
+  //  Serial.println(first_in);
+  //  Serial.print("second_in ");
+  //  Serial.println(second_in);
   state = digitalRead(mod);
-//  Serial.write("state \n");
-//  Serial.write(state);
-//  Serial.write("\n");
+  //  Serial.write("state \n");
+  //  Serial.write(state);
+  //  Serial.write("\n");
 
-  if (state == 0) // automatic
+  if (state == 2) // automatic
   {
+    Serial.println("automatic");
     if (Serial.available())
     {
       dir = Serial.read();
@@ -210,24 +216,30 @@ void loop() // run over and over
     //  obstacle(cm);
 
   }
-  else if (state == 1) // manual
+  else if (state == 1 || state == 0) // manual
   {
+    Serial.println("manual");
     if (first_in == 0 & second_in == 0)
     {
-      dir = "F";
+      dir = 'F';
+      Serial.println("front");
     }
     else if (first_in == 0 & second_in == 1)
     {
-      dir = "B";
+      dir = 'B';
+      Serial.println("back");
     }
     else if (first_in == 1 & second_in == 0)
     {
-      dir = "R";
+      dir = 'R';
+      Serial.println("right");
     }
     else if (first_in == 1 & second_in == 1)
     {
-      dir = "L";
+      dir = 'L';
+      Serial.println("left");
     }
+    //      Serial.println(dir);
   }
 
   switch (dir) {
@@ -235,44 +247,52 @@ void loop() // run over and over
     case 'F': // forward
       Serial.write("forward \n");
       forward();
-      delay(1000);
+      delay(350);
+      Serial.write("off \n");
       off();
+      delay(1000);
       dir = 'O';
       break;
 
     case 'B': //backward
       Serial.write("backward \n");
       backward();
-      delay(1000);
+      delay(200);
+      Serial.write("off \n");
       off();
+      delay(1000);
       dir = 'O';
       break;
 
     case 'R': //right
       Serial.write("right \n");
       right();
-      delay(500);
+      delay(200);
       //      forward();
       //      delay(2000);
+      Serial.write("off \n");
       off();
+      delay(1000);
       dir = 'O';
       break;
 
     case 'L': //left
       Serial.write("left \n");
       left();
-      delay(500);
+      delay(200);
       //      forward();
       //      delay(2000);
+      Serial.write("off \n");
       off();
+      delay(1000);
       dir = 'O';
       break;
 
     case 'O': // off
       off();
+      Serial.write("off \n");
       delay(1000);
       dir = 'O';
-      Serial.write("off \n");
       break;
   }
 
@@ -333,12 +353,14 @@ void loop() // run over and over
     Serial.println("Access is denied");
     //    playFalseMelody();
     digitalWrite(led_green, LOW);
+    digitalWrite(led_red, LOW);
+    delay(200);
     digitalWrite(led_red, HIGH);
     delay(1000);
     Serial.println("Please put your card on the RFID reader..");
   }
 
-
+  delay(1000);
 }
 
 //------- motors functions----------
@@ -376,8 +398,8 @@ void off()
 
 void right()
 {
-  analogWrite(ENA, 100);
-  analogWrite(ENB, 100);
+  analogWrite(ENA, 150);
+  analogWrite(ENB, 150);
   // Run the motors on both direction at fixed speed
   digitalWrite(IN1, HIGH); // Turn HIGH motor A
   digitalWrite(IN2, LOW);
@@ -388,8 +410,8 @@ void right()
 
 void left()
 {
-  analogWrite(ENA, 100);
-  analogWrite(ENB, 100);
+  analogWrite(ENA, 150);
+  analogWrite(ENB, 150);
   // Run the motors on both direction at fixed speed
   digitalWrite(IN1, LOW); // Turn HIGH motor A
   digitalWrite(IN2, HIGH);
