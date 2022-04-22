@@ -2,6 +2,7 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
 #include <SoftwareSerial.h>
+#include <Arduino_JSON.h>
 
 WiFiClient client;
 HTTPClient http;
@@ -12,9 +13,10 @@ String str;
 String state;
 String dir;
 int httpResponseCode;
-//String urlString = "http://172.28.132.122:8090/direction?";
-String urlString = "http://192.168.1.105:8090/direction?";
-//char * urlString = "http://192.168.1.105:8090/direction";
+//const char* urlString = "http://172.28.131.66:8090/direction?";
+const char* urlString = "http://192.168.43.240:8090/direction";
+//const char* urlString = "http://192.168.43.240:8090/direction"; // main
+//const char* urlString = "http://192.168.43.240:8090/direction"; // habd
 
 
 // set pin numbers
@@ -22,10 +24,12 @@ int ard_7 = 4;     // D2 on esp and to 7 in arduino
 int ard_8 = 5;     // D1 on esp and to 8 in arduino
 int mod = 12; // d6
 
-  char * username = "KhaledDodo";
-  char * password = "veto939599";
+//  char * username = "KhaledDodo";
+//  char * password = "veto939599";
 //char * username = "STUDBME2";
 //char * password = "BME2Stud";
+  char * username = "Mikasa";
+  char * password = "mnnymnny";
 
 void setup() {
   // initialize ard pins as output
@@ -51,65 +55,100 @@ void setup() {
   delay(500);
 }
 
-void loop()
-{ 
-//  http.begin(client, urlString);
-  http.begin(client, urlString.c_str());
-  // Your Domain name with URL path or IP address with path
-  httpResponseCode = http.GET();
-  if (httpResponseCode > 0)
-  {
+// habd start
+String httpGETRequest(const char* urlString) {
+  WiFiClient client;
+  HTTPClient http;
+
+  // Your IP address with path or Domain name with URL path
+  http.begin(client, urlString);
+
+  // Send HTTP POST request
+  int httpResponseCode = http.GET();
+  Serial.println("fn ");
+  String payload = "{}";
+
+  if (httpResponseCode > 0) {
+    Serial.print("HTTP Response code: ");
     Serial.println(httpResponseCode);
     payload = http.getString();
-    Serial.println(payload);
-    Serial.println("payload = ");
-    Serial.println(payload);
-
-    state  = payload[0];
-
-    if ( state == "Automatic") // automatic
-    {
-      digitalWrite(mod, LOW);
-      Serial.println("Automatic");
-    }
-    else if ( state != "Automatic") // manual
-    {
-      digitalWrite(mod, HIGH);
-      Serial.println("manual");
-    }
-
-    
-    dir = payload[1];
-
-    Serial.println("dir = ");
-    Serial.println(dir);
-
-    if ( dir == "F") // f
-    {
-      digitalWrite(ard_7, LOW);
-      digitalWrite(ard_8, LOW);
-    }
-    else if ( dir == "R") // r
-    {
-      digitalWrite(ard_7, HIGH);
-      digitalWrite(ard_8, LOW);
-    }
-    else if ( dir == "B") // b
-    {
-      digitalWrite(ard_7, LOW);
-      digitalWrite(ard_8, HIGH);
-    }
-    else if ( dir == "L") // l
-    {
-      digitalWrite(ard_7, HIGH);
-      digitalWrite(ard_8, HIGH);
-    }
+    //    Serial.print("payload: ");
+    //    Serial.println(payload);
   }
-//  else
-//  {
-//    Serial.print("Error code: ");
-//    Serial.println(httpResponseCode);
-//  }
+  else {
+    Serial.print("Error code: ");
+    Serial.println(httpResponseCode);
+  }
+  // Free resources
   http.end();
-  delay(1500);
+
+  return payload;
+}
+
+// end habd
+
+
+void loop()
+{
+  // start habd
+  delay (750);
+  String response;
+  String responseArr[2];
+
+  response = httpGETRequest(urlString);
+  JSONVar myObject = JSON.parse(response);
+
+  // JSON.typeof(jsonVar) can be used to get the type of the var
+  if (JSON.typeof(myObject) == "undefined") {
+    Serial.println("Parsing input failed!");
+    return;
+  }
+
+  //  Serial.print("JSON object = ");
+  //  Serial.println(myObject);
+
+  //  Serial.print("mode = ");
+  //  Serial.println(myObject[0]);
+  //  Serial.print("dir = ");
+  //  Serial.println(myObject[1]);
+
+  state  = myObject[0];
+
+  if ( state == "Automatic") // automatic
+  {
+    digitalWrite(mod, LOW);
+    Serial.println("Automatic");
+  }
+  else if ( state == "Manual") // manual
+  {
+    digitalWrite(mod, HIGH);
+    Serial.println("manual");
+  }
+
+
+  dir = myObject[1];
+
+  Serial.print("dir = ");
+  Serial.println(dir);
+
+  if ( dir == "F") // f
+  {
+    digitalWrite(ard_7, LOW);
+    digitalWrite(ard_8, LOW);
+  }
+  else if ( dir == "R") // r
+  {
+    digitalWrite(ard_7, HIGH);
+    digitalWrite(ard_8, LOW);
+  }
+  else if ( dir == "B") // b
+  {
+    digitalWrite(ard_7, LOW);
+    digitalWrite(ard_8, HIGH);
+  }
+  else if ( dir == "L") // l
+  {
+    digitalWrite(ard_7, HIGH);
+    digitalWrite(ard_8, HIGH);
+  }
 }
