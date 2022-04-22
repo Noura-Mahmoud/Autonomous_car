@@ -44,6 +44,9 @@ virtualenv venv
 ```
 python web_cam.py
 ```
+
+- For the model used in the automatic mode we used *https://teachablemachine.withgoogle.com/train/image* and trained it on the lane 
+
 ## 3- Make sure to be in *front_* directory then run following commands
 
 ```
